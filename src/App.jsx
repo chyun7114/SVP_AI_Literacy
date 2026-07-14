@@ -46,21 +46,7 @@ function PenguinBadge() {
     <div className="penguin-progress" aria-label="새끼 펭귄 달성률 25퍼센트">
       <div className="penguin-progress__ring">
         <div className="penguin-progress__inner-ring">
-          <div className="penguin">
-            <div className="penguin__shadow" />
-            <div className="penguin__body">
-              <div className="penguin__face">
-                <span className="penguin__eye penguin__eye--left" />
-                <span className="penguin__eye penguin__eye--right" />
-                <span className="penguin__beak" />
-              </div>
-              <div className="penguin__belly" />
-              <div className="penguin__arm penguin__arm--left" />
-              <div className="penguin__arm penguin__arm--right" />
-              <div className="penguin__foot penguin__foot--left" />
-              <div className="penguin__foot penguin__foot--right" />
-            </div>
-          </div>
+          <img src="/baby-penguin.png" alt="새끼 펭귄" className="penguin-image" />
         </div>
       </div>
       <div className="achievement-pill">25% 달성</div>
