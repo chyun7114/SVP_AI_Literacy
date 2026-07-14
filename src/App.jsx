@@ -11,6 +11,13 @@ const rankStats = [
   { label: '계열사 내 순위', value: '5', unit: '위', accent: true },
 ]
 
+const introCards = [
+  { id: 1, src: '/intro-card-1.png', alt: '나눔키오스크 소개 카드 1' },
+  { id: 2, src: '/intro-card-2.png', alt: '나눔키오스크 소개 카드 2' },
+  { id: 3, src: '/intro-card-3.png', alt: '나눔키오스크 소개 카드 3' },
+  { id: 4, src: '/intro-card-4.png', alt: '나눔키오스크 소개 카드 4' },
+]
+
 const affiliateData = [
   {
     id: 1,
@@ -217,6 +224,15 @@ function CardIcon() {
   )
 }
 
+function ArrowLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="back-icon">
+      <path d="M14.5 5.5 8 12l6.5 6.5" />
+      <path d="M9 12h7" />
+    </svg>
+  )
+}
+
 function MedalIcon({ rank }) {
   return (
     <span className={`medal medal--${rank}`} aria-label={`${rank}위`}>
@@ -259,14 +275,14 @@ function StatCard({ title, items }) {
   )
 }
 
-function BottomNav({ currentScreen, onChangeScreen }) {
+function BottomNav({ currentScreen, onOpenHome, onOpenRanking, onOpenIntro }) {
   return (
     <nav className="bottom-nav" aria-label="하단 메뉴">
       <button
         type="button"
         className={`bottom-nav__item${currentScreen === 'ranking' ? ' bottom-nav__item--active' : ''}`}
         aria-label="랭킹"
-        onClick={() => onChangeScreen('ranking')}
+        onClick={onOpenRanking}
       >
         <BarIcon />
       </button>
@@ -274,11 +290,11 @@ function BottomNav({ currentScreen, onChangeScreen }) {
         type="button"
         className={`bottom-nav__item bottom-nav__item--home${currentScreen === 'home' ? ' is-current' : ''}`}
         aria-label="홈"
-        onClick={() => onChangeScreen('home')}
+        onClick={onOpenHome}
       >
         <HomeIcon />
       </button>
-      <button type="button" className="bottom-nav__item" aria-label="카드 정보">
+      <button type="button" className="bottom-nav__item" aria-label="소개" onClick={onOpenIntro}>
         <CardIcon />
       </button>
     </nav>
@@ -393,8 +409,27 @@ function RankingScreen({ rankingData, endDateLabel }) {
   )
 }
 
+function IntroScreen({ onBack }) {
+  return (
+    <section className="intro-screen" aria-label="나눔키오스크 소개 카드">
+      <button type="button" className="intro-back-button" onClick={onBack} aria-label="뒤로가기">
+        <ArrowLeftIcon />
+      </button>
+
+      <div className="intro-card-list">
+        {introCards.map((card) => (
+          <article key={card.id} className="intro-card-frame">
+            <img src={card.src} alt={card.alt} className="intro-card-image" />
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function App() {
   const [screen, setScreen] = useState('home')
+  const [returnScreen, setReturnScreen] = useState('home')
 
   const rankingData = useMemo(() => {
     return [...affiliateData]
@@ -412,18 +447,33 @@ function App() {
 
   const endDateLabel = affiliateData[0].operationEndDate.replaceAll('-', '.')
 
+  const openHome = () => setScreen('home')
+  const openRanking = () => setScreen('ranking')
+  const openIntro = () => {
+    if (screen !== 'intro') {
+      setReturnScreen(screen)
+    }
+    setScreen('intro')
+  }
+  const closeIntro = () => setScreen(returnScreen)
+
   return (
     <main className="page-shell">
-      <section className={`mobile-screen${screen === 'ranking' ? ' mobile-screen--ranking' : ''}`}>
-        <div className="screen-content">
-          {screen === 'home' ? (
-            <HomeScreen />
-          ) : (
-            <RankingScreen rankingData={rankingData} endDateLabel={endDateLabel} />
-          )}
+      <section className={`mobile-screen mobile-screen--${screen}`}>
+        <div className={`screen-content${screen === 'intro' ? ' screen-content--intro' : ''}`}>
+          {screen === 'home' && <HomeScreen />}
+          {screen === 'ranking' && <RankingScreen rankingData={rankingData} endDateLabel={endDateLabel} />}
+          {screen === 'intro' && <IntroScreen onBack={closeIntro} />}
         </div>
 
-        <BottomNav currentScreen={screen} onChangeScreen={setScreen} />
+        {screen !== 'intro' && (
+          <BottomNav
+            currentScreen={screen}
+            onOpenHome={openHome}
+            onOpenRanking={openRanking}
+            onOpenIntro={openIntro}
+          />
+        )}
       </section>
     </main>
   )
