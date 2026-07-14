@@ -1,14 +1,24 @@
 import { useMemo, useState } from 'react'
 import './App.css'
 
+const userProfile = {
+  id: 1,
+  name: '김민수',
+  company: '삼성전자',
+  donationAmount: 348000,
+  donationCount: 58,
+  overallPercentile: 0.8,
+  companyPercentile: 1.2,
+}
+
 const donationStats = [
-  { label: '총 모금 횟수', value: '12', unit: '회' },
-  { label: '누적 모금액', value: '248,000', unit: '원' },
+  { label: '총 모금 횟수', value: '58', unit: '회' },
+  { label: '누적 모금액', value: '348,000', unit: '원' },
 ]
 
 const rankStats = [
-  { label: '전체 중 내 순위', value: '37', unit: '위', accent: true },
-  { label: '계열사 내 순위', value: '5', unit: '위', accent: true },
+  { label: '전체 상위', value: '0.8', unit: '%', accent: true },
+  { label: '계열사 상위', value: '1.2', unit: '%', accent: true },
 ]
 
 const introCards = [
@@ -307,7 +317,7 @@ function HomeScreen() {
       <header className="hero-header">
         <p className="hero-header__eyebrow">MY PAGE</p>
         <h1>
-          안녕하세요, <span>지민님</span>
+          안녕하세요, <span>{userProfile.name}님</span>
         </h1>
       </header>
 
