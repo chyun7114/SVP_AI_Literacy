@@ -5,8 +5,6 @@ const userProfile = {
   id: 1,
   name: '김민수',
   company: '삼성전자',
-  overallPercentile: 0.8,
-  companyPercentile: 1.2,
 }
 
 const introCards = [
@@ -254,6 +252,27 @@ function getStageByAmount(amount) {
   return stageConfig.find((stage) => amount >= stage.minAmount && amount <= stage.maxAmount) ?? stageConfig[0]
 }
 
+function getPercentilesByAmount(amount) {
+  const stage = getStageByAmount(amount)
+  const rangesByLevel = {
+    1: { overall: [96, 83], company: [91, 72] },
+    2: { overall: [78, 52], company: [58, 34] },
+    3: { overall: [38, 14], company: [24, 8] },
+    4: { overall: [12, 3], company: [7, 1.8] },
+    5: { overall: [2.5, 0.3], company: [1.6, 0.1] },
+  }
+
+  const range = rangesByLevel[stage.level]
+  const stageSpan = stage.maxAmount === Infinity ? 50000 : Math.max(stage.maxAmount - stage.minAmount, 1)
+  const progress = Math.min(Math.max((amount - stage.minAmount) / stageSpan, 0), 1)
+  const lerp = (start, end) => start + (end - start) * progress
+
+  return {
+    overallPercentile: lerp(range.overall[0], range.overall[1]),
+    companyPercentile: lerp(range.company[0], range.company[1]),
+  }
+}
+
 function BarIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="nav-icon nav-icon-bars">
@@ -364,15 +383,24 @@ function BottomNav({ currentScreen, onOpenHome, onOpenRanking, onOpenIntro }) {
   )
 }
 
-function HomeScreen({ currentUser, stage, donationAmount, donationCount, progressPercent, onRefresh }) {
+function HomeScreen({
+  currentUser,
+  stage,
+  donationAmount,
+  donationCount,
+  progressPercent,
+  overallPercentile,
+  companyPercentile,
+  onRefresh,
+}) {
   const donationStats = [
     { label: '총 모금 횟수', value: formatNumber(donationCount), unit: '회' },
     { label: '누적 모금액', value: formatNumber(donationAmount), unit: '원' },
   ]
 
   const rankStats = [
-    { label: '전체 상위', value: String(currentUser.overallPercentile), unit: '%', accent: true },
-    { label: '계열사 상위', value: String(currentUser.companyPercentile), unit: '%', accent: true },
+    { label: '전체 상위', value: overallPercentile.toFixed(1), unit: '%', accent: true },
+    { label: '계열사 상위', value: companyPercentile.toFixed(1), unit: '%', accent: true },
   ]
 
   return (
@@ -416,7 +444,7 @@ function RankingPodiumCard({ item, tone, rank }) {
   )
 }
 
-function RankingScreen({ rankingData, endDateLabel }) {
+function RankingScreen({ rankingData, currentDateLabel }) {
   const topThree = rankingData.slice(0, 3)
   const podiumOrder = [topThree[1], topThree[0], topThree[2]].filter(Boolean)
   const podiumTones = ['silver', 'gold', 'bronze']
@@ -437,7 +465,9 @@ function RankingScreen({ rankingData, endDateLabel }) {
           참여율 순위
         </h1>
         <p className="ranking-header__subtitle">
-          따뜻한 나눔, 우리 계열사 기부 캠페인 · {endDateLabel} 기준
+          따뜻한 나눔, 우리 계열사 기부 캠페인
+          <br />
+          {currentDateLabel} 기준
         </p>
       </header>
 
@@ -527,7 +557,14 @@ function App() {
   const currentStage = useMemo(() => getStageByAmount(donationAmount), [donationAmount])
   const donationCount = useMemo(() => Math.round(donationAmount / 1000), [donationAmount])
   const progressPercent = useMemo(() => Math.min((donationAmount / 100000) * 100, 100), [donationAmount])
-  const endDateLabel = affiliateData[0].operationEndDate.replaceAll('-', '.')
+  const { overallPercentile, companyPercentile } = useMemo(
+    () => getPercentilesByAmount(donationAmount),
+    [donationAmount],
+  )
+  const currentDateLabel = useMemo(() => {
+    const now = new Date()
+    return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`
+  }, [])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -559,10 +596,12 @@ function App() {
               donationAmount={donationAmount}
               donationCount={donationCount}
               progressPercent={progressPercent}
+              overallPercentile={overallPercentile}
+              companyPercentile={companyPercentile}
               onRefresh={refreshDonationState}
             />
           )}
-          {screen === 'ranking' && <RankingScreen rankingData={rankingData} endDateLabel={endDateLabel} />}
+          {screen === 'ranking' && <RankingScreen rankingData={rankingData} currentDateLabel={currentDateLabel} />}
           {screen === 'intro' && <IntroScreen onBack={closeIntro} />}
         </div>
 
