@@ -195,7 +195,11 @@ function formatNumber(value) {
   return new Intl.NumberFormat('ko-KR').format(value)
 }
 
-function formatCurrency(value) {
+function formatCurrency(value, unit = '원') {
+  if (unit === '천원') {
+    return `${formatNumber(Math.round(value / 1000))}천원`
+  }
+
   return `${formatNumber(value)}원`
 }
 
@@ -407,7 +411,7 @@ function RankingScreen({ rankingData, endDateLabel }) {
                   <td className={`rate-cell${item.rank <= 3 ? ' rate-cell--top' : ''}`}>
                     {formatRate(item.participationRate)}
                   </td>
-                  <td>{formatCurrency(item.totalDonationAmount)}</td>
+                  <td>{formatCurrency(item.totalDonationAmount, '천원')}</td>
                   <td>{formatCurrency(item.averageDonationPerParticipant)}</td>
                 </tr>
               ))}
