@@ -133,7 +133,7 @@
 }
 
 .penguin-image {
-  width: 172px;
+  width: 204px;
   max-width: 100%;
   object-fit: contain;
   filter: drop-shadow(0 16px 14px rgba(69, 104, 133, 0.16));
