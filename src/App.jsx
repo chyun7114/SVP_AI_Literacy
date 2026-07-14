@@ -1,31 +1,57 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
 const userProfile = {
   id: 1,
   name: '김민수',
   company: '삼성전자',
-  donationAmount: 348000,
-  donationCount: 58,
   overallPercentile: 0.8,
   companyPercentile: 1.2,
 }
-
-const donationStats = [
-  { label: '총 모금 횟수', value: '58', unit: '회' },
-  { label: '누적 모금액', value: '348,000', unit: '원' },
-]
-
-const rankStats = [
-  { label: '전체 상위', value: '0.8', unit: '%', accent: true },
-  { label: '계열사 상위', value: '1.2', unit: '%', accent: true },
-]
 
 const introCards = [
   { id: 1, src: '/intro-card-1.png', alt: '나눔키오스크 소개 카드 1' },
   { id: 2, src: '/intro-card-2.png', alt: '나눔키오스크 소개 카드 2' },
   { id: 3, src: '/intro-card-3.png', alt: '나눔키오스크 소개 카드 3' },
   { id: 4, src: '/intro-card-4.png', alt: '나눔키오스크 소개 카드 4' },
+]
+
+const stageConfig = [
+  {
+    level: 1,
+    name: '알',
+    minAmount: 0,
+    maxAmount: 4999,
+    image: '/stages/lv1-egg.png',
+  },
+  {
+    level: 2,
+    name: '새끼 펭귄',
+    minAmount: 5000,
+    maxAmount: 9999,
+    image: '/stages/lv2-baby.png',
+  },
+  {
+    level: 3,
+    name: '펭귄',
+    minAmount: 10000,
+    maxAmount: 49999,
+    image: '/stages/lv3-penguin.png',
+  },
+  {
+    level: 4,
+    name: '황제 펭귄',
+    minAmount: 50000,
+    maxAmount: 99999,
+    image: '/stages/lv4-emperor.png',
+  },
+  {
+    level: 5,
+    name: '전설의 펭귄',
+    minAmount: 100000,
+    maxAmount: Infinity,
+    image: '/stages/lv5-legendary.png',
+  },
 ]
 
 const affiliateData = [
@@ -207,6 +233,27 @@ function formatRate(value) {
   return `${value.toFixed(1)}%`
 }
 
+function getRandomAmountInRange(minAmount, maxAmount) {
+  const start = Math.ceil(minAmount / 1000)
+  const end = Math.floor(maxAmount / 1000)
+  const randomCount = Math.floor(Math.random() * (end - start + 1)) + start
+  return randomCount * 1000
+}
+
+function getRandomDonationAmount() {
+  const bucket = stageConfig[Math.floor(Math.random() * stageConfig.length)]
+
+  if (bucket.level === 5) {
+    return getRandomAmountInRange(100000, 150000)
+  }
+
+  return getRandomAmountInRange(bucket.minAmount, bucket.maxAmount)
+}
+
+function getStageByAmount(amount) {
+  return stageConfig.find((stage) => amount >= stage.minAmount && amount <= stage.maxAmount) ?? stageConfig[0]
+}
+
 function BarIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="nav-icon nav-icon-bars">
@@ -257,15 +304,17 @@ function MedalIcon({ rank }) {
   )
 }
 
-function PenguinBadge() {
+function PenguinBadge({ stage, progressPercent }) {
+  const progressAngle = `${Math.max(progressPercent * 3.6, 0)}deg`
+
   return (
-    <div className="penguin-progress" aria-label="새끼 펭귄 달성률 25퍼센트">
-      <div className="penguin-progress__ring">
+    <div className="penguin-progress" aria-label={`${stage.name} 달성률 ${Math.round(progressPercent)}퍼센트`}>
+      <div className="penguin-progress__ring" style={{ '--progress-angle': progressAngle }}>
         <div className="penguin-progress__inner-ring">
-          <img src="/baby-penguin.png" alt="새끼 펭귄" className="penguin-image" />
+          <img src={stage.image} alt={stage.name} className="penguin-image" />
         </div>
       </div>
-      <div className="achievement-pill">25% 달성</div>
+      <div className="achievement-pill">{Math.round(progressPercent)}% 달성</div>
     </div>
   )
 }
@@ -315,20 +364,35 @@ function BottomNav({ currentScreen, onOpenHome, onOpenRanking, onOpenIntro }) {
   )
 }
 
-function HomeScreen() {
+function HomeScreen({ currentUser, stage, donationAmount, donationCount, progressPercent, onRefresh }) {
+  const donationStats = [
+    { label: '총 모금 횟수', value: formatNumber(donationCount), unit: '회' },
+    { label: '누적 모금액', value: formatNumber(donationAmount), unit: '원' },
+  ]
+
+  const rankStats = [
+    { label: '전체 상위', value: String(currentUser.overallPercentile), unit: '%', accent: true },
+    { label: '계열사 상위', value: String(currentUser.companyPercentile), unit: '%', accent: true },
+  ]
+
   return (
     <>
       <header className="hero-header">
-        <p className="hero-header__eyebrow">MY PAGE</p>
+        <div className="hero-header__topline">
+          <p className="hero-header__eyebrow">MY PAGE</p>
+          <button type="button" className="refresh-chip" onClick={onRefresh}>
+            랜덤 갱신
+          </button>
+        </div>
         <h1>
-          안녕하세요, <span>{userProfile.name}님</span>
+          안녕하세요, <span>{currentUser.name}님</span>
         </h1>
       </header>
 
       <section className="character-panel">
-        <div className="level-pill">LV. 2</div>
-        <p className="character-name">새끼 펭귄</p>
-        <PenguinBadge />
+        <div className="level-pill">LV. {stage.level}</div>
+        <p className="character-name">{stage.name}</p>
+        <PenguinBadge stage={stage} progressPercent={progressPercent} />
       </section>
 
       <section className="stats-grid" aria-label="나의 현황">
@@ -444,6 +508,7 @@ function IntroScreen({ onBack }) {
 function App() {
   const [screen, setScreen] = useState('home')
   const [returnScreen, setReturnScreen] = useState('home')
+  const [donationAmount, setDonationAmount] = useState(() => getRandomDonationAmount())
 
   const rankingData = useMemo(() => {
     return [...affiliateData]
@@ -459,8 +524,20 @@ function App() {
       }))
   }, [])
 
+  const currentStage = useMemo(() => getStageByAmount(donationAmount), [donationAmount])
+  const donationCount = useMemo(() => Math.round(donationAmount / 1000), [donationAmount])
+  const progressPercent = useMemo(() => Math.min((donationAmount / 100000) * 100, 100), [donationAmount])
   const endDateLabel = affiliateData[0].operationEndDate.replaceAll('-', '.')
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setDonationAmount(getRandomDonationAmount())
+    }, 180000)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
+
+  const refreshDonationState = () => setDonationAmount(getRandomDonationAmount())
   const openHome = () => setScreen('home')
   const openRanking = () => setScreen('ranking')
   const openIntro = () => {
@@ -475,7 +552,16 @@ function App() {
     <main className="page-shell">
       <section className={`mobile-screen mobile-screen--${screen}`}>
         <div className={`screen-content${screen === 'intro' ? ' screen-content--intro' : ''}`}>
-          {screen === 'home' && <HomeScreen />}
+          {screen === 'home' && (
+            <HomeScreen
+              currentUser={userProfile}
+              stage={currentStage}
+              donationAmount={donationAmount}
+              donationCount={donationCount}
+              progressPercent={progressPercent}
+              onRefresh={refreshDonationState}
+            />
+          )}
           {screen === 'ranking' && <RankingScreen rankingData={rankingData} endDateLabel={endDateLabel} />}
           {screen === 'intro' && <IntroScreen onBack={closeIntro} />}
         </div>

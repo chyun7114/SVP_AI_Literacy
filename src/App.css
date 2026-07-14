@@ -47,6 +47,24 @@
   padding-top: 64px;
 }
 
+.hero-header__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.refresh-chip {
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(180deg, #5eaef4 0%, #2d78c0 100%);
+  box-shadow: 0 8px 18px rgba(48, 120, 191, 0.22);
+}
+
 .screen-content--intro {
   padding-top: 0;
 }
@@ -128,7 +146,7 @@
   border-radius: 50%;
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 52%, transparent 53%),
-    conic-gradient(from 0deg, #4da5e9 0deg 90deg, #dfe9f2 90deg 360deg);
+    conic-gradient(from 0deg, #4da5e9 0deg var(--progress-angle, 0deg), #dfe9f2 var(--progress-angle, 0deg) 360deg);
   box-shadow:
     inset 0 0 0 8px rgba(246, 251, 255, 0.8),
     0 10px 28px rgba(101, 141, 173, 0.18);
@@ -149,8 +167,9 @@
 }
 
 .penguin-image {
-  width: 204px;
-  max-width: 100%;
+  width: auto;
+  max-width: 196px;
+  max-height: 196px;
   object-fit: contain;
   filter: drop-shadow(0 16px 14px rgba(69, 104, 133, 0.16));
 }
